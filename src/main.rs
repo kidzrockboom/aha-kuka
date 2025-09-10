@@ -1,4 +1,5 @@
-use axum::{Router, routing::get};
+use aha_kuka::app;
+
 use simplelog::*;
 use std::fs::File;
 use std::net::SocketAddr;
@@ -20,16 +21,14 @@ async fn main() {
     ])
     .unwrap();
 
-    // build our application with a single route
-    let app = Router::new().route("/", get(|| async { "Hello, World!" }));
-    info!("Created router app");
+    let app = app();
 
-    // run our app with hyper, listening globally on port 3000
+    // run our app with listening globally on port 3000
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000)); // write address like this to not make typos
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     info!("Created tcp listener on port {}", addr);
 
-    axum::serve(listener, app).await.unwrap();
-
-    todo!("Write a test greeting endpoint");
+    axum::serve(listener, app.await.into_make_service())
+        .await
+        .unwrap();
 }
